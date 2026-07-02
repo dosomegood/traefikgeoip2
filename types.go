@@ -18,6 +18,8 @@ const (
 	CountryHeader = "X-GeoIP2-Country"
 	// RegionHeader region header name.
 	RegionHeader = "X-GeoIP2-Region"
+	// RegionNameHeader region name header name.
+	RegionNameHeader = "X-GeoIP2-Region-Name"
 	// CityHeader city header name.
 	CityHeader = "X-GeoIP2-City"
 	// IPAddressHeader city header name.
@@ -28,6 +30,7 @@ const (
 type GeoIPResult struct {
 	country string
 	region  string
+	regionName string
 	city    string
 }
 
@@ -44,6 +47,7 @@ func CreateCityDBLookup(rdr *geoip2.CityReader) LookupGeoIP2 {
 		retval := GeoIPResult{
 			country: rec.Country.ISOCode,
 			region:  Unknown,
+			regionName: Unknown,
 			city:    Unknown,
 		}
 		if city, ok := rec.City.Names["en"]; ok {
@@ -51,6 +55,9 @@ func CreateCityDBLookup(rdr *geoip2.CityReader) LookupGeoIP2 {
 		}
 		if rec.Subdivisions != nil {
 			retval.region = rec.Subdivisions[0].ISOCode
+			if regionName, ok := rec.Subdivisions[0].Names["en"]; ok {
+				retval.regionName = regionName
+			}
 		}
 		return &retval, nil
 	}
@@ -66,6 +73,7 @@ func CreateCountryDBLookup(rdr *geoip2.CountryReader) LookupGeoIP2 {
 		retval := GeoIPResult{
 			country: rec.Country.ISOCode,
 			region:  Unknown,
+			regionName: Unknown,
 			city:    Unknown,
 		}
 		return &retval, nil
