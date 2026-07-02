@@ -1,20 +1,20 @@
 # Traefik plugin for MaxMind GeoIP2
 
 > [!IMPORTANT]
-> This project is looking for maintainers. Please comment in [this issue](https://github.com/traefik-plugins/traefik-jwt-plugin/issues/82)
+> This fork is a patch to allow the inclusion of the region name in the headers. The original plugin can be found [here](https://github.com/traefik-plugins/traefikgeoip2)
 
-[Traefik](https://doc.traefik.io/traefik/) plugin 
-that registers a custom middleware 
-for getting data from 
-[MaxMind GeoIP databases](https://www.maxmind.com/en/geoip2-services-and-databases) 
+[Traefik](https://doc.traefik.io/traefik/) plugin
+that registers a custom middleware
+for getting data from
+[MaxMind GeoIP databases](https://www.maxmind.com/en/geoip2-services-and-databases)
 and pass it downstream via HTTP request headers.
 
-Supports both 
-[GeoIP2](https://www.maxmind.com/en/geoip2-databases) 
-and 
+Supports both
+[GeoIP2](https://www.maxmind.com/en/geoip2-databases)
+and
 [GeoLite2](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data) databases.
 
-## Installation 
+## Installation
 
 The tricky part of installing this plugin into containerized environments, like Kubernetes,
 is that a container should contain a database within it.
@@ -23,7 +23,7 @@ is that a container should contain a database within it.
 
 > [!WARNING]
 > Setup below is provided for demonstration purpose and should not be used on production.
-> Traefik's plugin site is observed to be frequently unavailable, 
+> Traefik's plugin site is observed to be frequently unavailable,
 > so plugin download may fail on pod restart.
 
 Tested with [official Traefik chart](https://artifacthub.io/packages/helm/traefik/traefik) version 26.0.0.
@@ -32,29 +32,29 @@ The following snippet should be added to `values.yaml`:
 
 ```yaml
 experimental:
-  plugins:
-    geoip2:
-      moduleName: github.com/traefik-plugins/traefikgeoip2
-      version: v0.22.0
+    plugins:
+        geoip2:
+            moduleName: github.com/dosomegood/traefikgeoip2
+            version: v0.23.0
 deployment:
-  additionalVolumes:
-    - name: geoip2
-      emptyDir: {}
-  initContainers:
-    - name: download
-      image: alpine
-      volumeMounts:
+    additionalVolumes:
         - name: geoip2
-          mountPath: /tmp/geoip2
-      command:
-        - "/bin/sh"
-        - "-ce"
-        - |
-          wget -P /tmp https://raw.githubusercontent.com/traefik-plugins/traefikgeoip2/main/geolite2.tgz
-          tar --directory /tmp/geoip2 -xvzf /tmp/geolite2.tgz
+          emptyDir: {}
+    initContainers:
+        - name: download
+          image: alpine
+          volumeMounts:
+              - name: geoip2
+                mountPath: /tmp/geoip2
+          command:
+              - "/bin/sh"
+              - "-ce"
+              - |
+                  wget -P /tmp https://raw.githubusercontent.com/dosomegood/traefikgeoip2/main/geolite2.tgz
+                  tar --directory /tmp/geoip2 -xvzf /tmp/geolite2.tgz
 additionalVolumeMounts:
-  - name: geoip2
-    mountPath: /geoip2
+    - name: geoip2
+      mountPath: /geoip2
 ```
 
 ### Create Traefik Middleware
@@ -63,22 +63,22 @@ additionalVolumeMounts:
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: geoip2
-  namespace: traefik
+    name: geoip2
+    namespace: traefik
 spec:
-  plugin:
-    geoip2:
-      dbPath: "/geoip2/GeoLite2-City.mmdb"
+    plugin:
+        geoip2:
+            dbPath: "/geoip2/GeoLite2-City.mmdb"
 ```
 
 ## Configuration
 
 The plugin currently supports the following configuration settings:
 
-Name | Description
----- | ----
-DbPath | **Required** Container path to GeoIP database.
-PreferXForwardedForHeader | Should `X-Forwarded-For` header be used to extract IP address. Default `false`.
+| Name                      | Description                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------- |
+| DbPath                    | **Required** Container path to GeoIP database.                                  |
+| PreferXForwardedForHeader | Should `X-Forwarded-For` header be used to extract IP address. Default `false`. |
 
 ## Development
 

@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	mw "github.com/traefik-plugins/traefikgeoip2"
+	mw "github.com/dosomegood/traefikgeoip2"
 )
 
 const (
